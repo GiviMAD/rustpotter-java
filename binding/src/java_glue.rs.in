@@ -1,0 +1,96 @@
+// src/java_glue.rs.in
+use crate::jni_c_header::*;
+use rustpotter::detector::{FeatureDetector, FeatureDetectorBuilder};
+
+pub struct RustpotterDetection {
+    name: String,
+    score: f32
+}
+impl RustpotterDetection {
+    pub fn new(name: String, score: f32) -> Self {
+        Self { name, score }
+    }
+    pub fn getName(&self) -> String {
+        self.name.clone()
+    }
+    pub fn getScore(&self) -> f32 {
+        self.score
+    }
+}
+
+pub struct RustpotterJava {
+    detector: FeatureDetector
+}
+
+impl RustpotterJava {
+    pub fn new() -> Self {
+        Self {
+            detector: FeatureDetectorBuilder::new().build()
+        }
+    }
+    pub fn addModel(&mut self, path:String) {
+        self.detector.add_keyword_from_model(path, false, true).unwrap();
+    }
+
+    pub fn processPCMSigned(&mut self, buffer: &[i16]) -> Option<RustpotterDetection> {
+        let results = self.detector.process_pcm_signed(buffer.to_vec());
+        if results.len() > 0 {
+            Some(RustpotterDetection::new(results[0].wakeword.clone(), results[0].score))
+        } else {
+            None
+        }
+    }
+    pub fn getFrameSize(&self) -> usize {
+        self.detector.get_samples_per_frame()
+    }
+}
+foreign_class!(class RustpotterDetection {
+    self_type RustpotterDetection;
+    private constructor = empty;
+    fn RustpotterDetection::getName(&self) -> String;
+    fn RustpotterDetection::getScore(&self) -> f32;
+});
+foreign_class!(class RustpotterJava {
+    self_type RustpotterJava;
+    constructor RustpotterJava::new() -> RustpotterJava;
+    fn RustpotterJava::addModel(&mut self, path: String);
+    fn RustpotterJava::processPCMSigned(&mut self, buffer: &[i16]) -> Option<RustpotterDetection>;
+    fn RustpotterJava::getFrameSize(&self) -> usize;
+    foreign_code r#"
+    public static void loadLibrary() {
+        try {
+            String osName = System.getProperty("os.name").toLowerCase();
+            String osArch = System.getProperty("os.arch").toLowerCase();
+            if (osName.contains("win")) {
+                if(osArch.contains("amd64") || osArch.contains("x86_64")) {
+                    NativeUtils.loadLibraryFromJar("/librustpotter_java_win_x86_64.dll");
+                    return;
+                }
+            } else if (osName.contains("nix") || osName.contains("nux")
+                    || osName.contains("aix")) {
+                if(osArch.contains("amd64") || osArch.contains("x86_64")) {
+                    NativeUtils.loadLibraryFromJar("/librustpotter_java_debian_x86_64.so");
+                    return;
+                } else if(osArch.contains("aarch64") || osArch.contains("arm64")) {
+                    NativeUtils.loadLibraryFromJar("/librustpotter_java_debian_aarch64.so");
+                    return;
+                } else if(osArch.contains("armv7") || osArch.contains("arm")) {
+                    NativeUtils.loadLibraryFromJar("/librustpotter_java_debian_armv7l.so");
+                    return;
+                }
+            } else if (osName.contains("mac") || osName.contains("darwin")) {
+                if(osArch.contains("amd64") || osArch.contains("x86_64")) {
+                    NativeUtils.loadLibraryFromJar("/librustpotter_java_macos_x86_64.dylib");
+                    return;
+                } else if(osArch.contains("aarch64") || osArch.contains("arm64")) {
+                    NativeUtils.loadLibraryFromJar("/librustpotter_java_macos_aarch64.dylib");
+                    return;
+                }
+            }
+            throw new java.io.IOException("Rustpotter: Unsupported platform.");
+        } catch (java.io.IOException e) {
+            e.printStackTrace();
+        }
+    }
+"#;
+});

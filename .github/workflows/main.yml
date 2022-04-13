@@ -1,0 +1,128 @@
+name: CI
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+jobs:
+  build-lib-debian-x86_64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Docker Setup Buildx
+        uses: docker/setup-buildx-action@v1.6.0
+        with:
+          install: true
+      - name: Build binaries
+        run: |
+          cd binding
+          mkdir -p dist
+          docker build -f docker/Dockerfile . -t rustpotter_binary:x86_64 --load
+          docker run --platform=amd64 -v $(pwd)/dist:/out rustpotter_binary:x86_64 bash -c "cp /code/dist/* /out/"
+      - name: artifact debian x86_64
+        uses: actions/upload-artifact@v3
+        with:
+          name: debian-binary
+          path: binding/dist/librustpotter_java_debian_x86_64.so
+
+  build-lib-debian-arm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Docker Setup Buildx
+        uses: docker/setup-buildx-action@v1.6.0
+        with:
+          install: true
+      - name: Build binaries
+        run: |
+          cd binding
+          mkdir -p dist
+          docker build -f docker/Dockerfile . -t rustpotter_binary:arm --platform arm --load
+          DOCKER_BUILDKIT=1 docker run --platform=arm -v $(pwd)/dist:/out rustpotter_binary:arm bash -c "cp /code/dist/* /out/"
+      - name: artifact debian arm
+        uses: actions/upload-artifact@v3
+        with:
+          name: debian-binary-arm
+          path: binding/dist/librustpotter_java_debian_armv7l.so
+
+  build-lib-debian-arm64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Docker Setup Buildx
+        uses: docker/setup-buildx-action@v1.6.0
+        with:
+          install: true
+      - name: Build binaries
+        run: |
+          cd binding
+          mkdir -p dist
+          docker build -f docker/Dockerfile . -t rustpotter_binary:arm64 --platform arm64 --load
+          DOCKER_BUILDKIT=1 docker run --platform=arm64 -v $(pwd)/dist:/out rustpotter_binary:arm64 bash -c "cp /code/dist/* /out/"
+      - name: artifact debian arm64
+        uses: actions/upload-artifact@v3
+        with:
+          name: debian-binary-arm64
+          path: binding/dist/librustpotter_java_debian_aarch64.so
+      
+  build-lib-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Clang
+        uses: egor-tensin/setup-clang@v1
+      - name: Install Rustup using win.rustup.rs
+        run: |
+          # Disable the download progress bar which can cause perf issues
+          $ProgressPreference = "SilentlyContinue"
+          Invoke-WebRequest https://win.rustup.rs/ -OutFile rustup-init.exe
+          .\rustup-init.exe -y --default-host=x86_64-pc-windows-gnu --default-toolchain=none
+          del rustup-init.exe
+          rustup target add x86_64-pc-windows-gnu
+        shell: powershell
+      - name: build binary
+        run: |
+          cd binding
+          cargo build --release
+          mkdir dist
+          cp target/release/rustpotter_java.dll dist/librustpotter_java_win_x86_64.dll
+      - name: artifact windows x86_64
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-binary-x86_64
+          path: binding/dist/librustpotter_java_win_x86_64.dll
+
+  build-lib-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: install rustup
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > rustup-init.sh
+          sh rustup-init.sh -y --default-toolchain none
+          rustup target add x86_64-apple-darwin
+      - name: build binary
+        run: |
+          cd binding
+          export DYLD_LIBRARY_PATH=/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/
+          cargo build --release
+          mkdir dist
+          cp target/release/librustpotter_java.dylib dist/librustpotter_java_macos_x86_64.dylib
+          rustup target add aarch64-apple-darwin
+          cargo build --target aarch64-apple-darwin --release
+          cp target/aarch64-apple-darwin/release/librustpotter_java.dylib dist/librustpotter_java_macos_aarch64.dylib
+      - name: artifact macos x86_64
+        uses: actions/upload-artifact@v3
+        with:
+          name: macos-binary-x86_64
+          path: binding/dist/librustpotter_java_macos_x86_64.dylib
+      - name: artifact macos arm64
+        uses: actions/upload-artifact@v3
+        with:
+          name: macos-binary-arm64
+          path: binding/dist/librustpotter_java_macos_aarch64.dylib
