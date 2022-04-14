@@ -17,7 +17,7 @@ COPY --from=rust_vendor /code/.cargo /code/.cargo
 COPY --from=rust_vendor /code/vendor /code/vendor
 WORKDIR code
 RUN export JAVA_HOME="$(dirname $(dirname $(readlink -f $(which java))))" && \
-    mkdir -p ../src/main/java/io/github/givimad/rustpotter-java && \
+    mkdir -p ../src/main/java/io/github/givimad/rustpotter_java && \
     rustup component add rustfmt && \
     cargo build --release --offline && \
     mkdir -p dist && \

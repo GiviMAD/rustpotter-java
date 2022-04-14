@@ -4,7 +4,7 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>io.github.givimad.rustpotter-java</groupId>
+  <groupId>io.github.givimad</groupId>
   <artifactId>rustpotter-java</artifactId>
   <version>0.2.0</version>
 
@@ -30,7 +30,12 @@
         <organizationUrl>https://github.com/GiviMAD</organizationUrl>
     </developer>
   </developers>
-
+    <scm>
+        <connection>scm:git:git://github.com/givimad/rustpotter-java.git</connection>
+        <developerConnection>scm:git:git://github.com/GiviMAD/rustpotter-java.git</developerConnection>
+        <url>https://github.com/GiviMAD/rustpotter-java</url>
+        <tag>HEAD</tag>
+    </scm>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>11</maven.compiler.source>
@@ -45,6 +50,19 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+   <distributionManagement>
+    <snapshotRepository>
+      <id>sonatype-nexus-snapshots</id>
+      <name>Sonatype Nexus Snapshots</name>
+      <url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
+    </snapshotRepository>
+    <repository>
+      <id>sonatype-nexus-staging</id>
+      <name>Nexus Release Repository</name>
+      <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
+  </distributionManagement>
 
   <build>
     <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) -->
@@ -90,5 +108,50 @@
         </plugin>
       </plugins>
     </pluginManagement>
+    <plugins>
+      <!-- Attach source jars-->
+        <plugin>
+          <artifactId>maven-source-plugin</artifactId>
+          <version>3.2.1</version>
+          <executions>
+            <execution>
+              <id>attach-source</id>
+              <phase>compile</phase>
+              <goals>
+                <goal>jar-no-fork</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+        <!-- Attach javadocs jar -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>3.3.2</version>
+          <executions>
+            <execution>
+              <id>attach-javadocs</id>
+              <goals>
+                <goal>jar</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+        <!-- Sign artifacts for uploading to maven central -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-gpg-plugin</artifactId>
+          <version>3.0.1</version>
+          <executions>
+            <execution>
+              <id>sign-artifacts</id>
+              <phase>verify</phase>
+              <goals>
+                <goal>sign</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+    </plugins>
   </build>
 </project>

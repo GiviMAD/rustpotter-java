@@ -17,7 +17,7 @@ fn main() {
         .join("io")
         .join("github")
         .join("givimad")
-        .join("rustpotter-java"),
+        .join("rustpotter_java"),
         "io.github.givimad.rustpotter_java".into(),
     );
     let in_src = Path::new("src").join("java_glue.rs.in");
