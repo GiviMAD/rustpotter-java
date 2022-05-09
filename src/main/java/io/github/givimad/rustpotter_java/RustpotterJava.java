@@ -4,18 +4,23 @@ package io.github.givimad.rustpotter_java;
 
 public final class RustpotterJava {
 
-    public RustpotterJava() {
-        mNativeObj = init();
-    }
-    private static native long init();
-
-    public final void addModel(String path) {
-        do_addModel(mNativeObj, path);
-    }
-    private static native void do_addModel(long self, String path);
-
-    public final java.util.Optional<RustpotterDetection> processPCMSigned(short [] buffer) {
-        long ret = do_processPCMSigned(mNativeObj, buffer);
+    private RustpotterJava() {}
+    /**
+     * Process i32 audio chunks.
+     * 
+     * Asserts that the audio chunk length should match the return
+     * of the get_samples_per_frame method.
+     * 
+     * Assumes sample rate match the configured for the detector.
+     * 
+     * Asserts that detector bits_per_sample is one of: 8, 16, 24, 32.
+     * 
+     * Asserts that detector sample_format is 'int'.
+     * 
+     * It's an alias for the processInt method.
+     */
+    public final java.util.Optional<RustpotterDetection> process(int [] buffer) {
+        long ret = do_process(mNativeObj, buffer);
         java.util.Optional<RustpotterDetection> convRet;
         if (ret != 0) {
             convRet = java.util.Optional.of(new RustpotterDetection(InternalPointerMarker.RAW_PTR, ret));
@@ -25,8 +30,113 @@ public final class RustpotterJava {
 
         return convRet;
     }
-    private static native long do_processPCMSigned(long self, short [] buffer);
+    private static native long do_process(long self, int [] buffer);
+    /**
+     * Process i32 audio chunks.
+     * 
+     * Asserts that the audio chunk length should match the return
+     * of the get_samples_per_frame method.
+     * 
+     * Assumes sample rate match the configured for the detector.
+     * 
+     * Asserts that detector bits_per_sample is one of: 8, 16, 24, 32.
+     * 
+     * Asserts that detector sample_format is 'int'.
+     */
+    public final java.util.Optional<RustpotterDetection> processInt(int [] buffer) {
+        long ret = do_processInt(mNativeObj, buffer);
+        java.util.Optional<RustpotterDetection> convRet;
+        if (ret != 0) {
+            convRet = java.util.Optional.of(new RustpotterDetection(InternalPointerMarker.RAW_PTR, ret));
+        } else {
+            convRet = java.util.Optional.empty();
+        }
 
+        return convRet;
+    }
+    private static native long do_processInt(long self, int [] buffer);
+    /**
+     * Process i16 audio chunks.
+     * 
+     * Asserts that the audio chunk length should match the return
+     * of the get_samples_per_frame method.
+     * 
+     * Assumes sample rate match the configured for the detector.
+     * 
+     * Asserts that detector bits_per_sample is one of: 8, 16.
+     * 
+     * Asserts that detector sample_format is 'int'.
+     */
+    public final java.util.Optional<RustpotterDetection> processSort(short [] buffer) {
+        long ret = do_processSort(mNativeObj, buffer);
+        java.util.Optional<RustpotterDetection> convRet;
+        if (ret != 0) {
+            convRet = java.util.Optional.of(new RustpotterDetection(InternalPointerMarker.RAW_PTR, ret));
+        } else {
+            convRet = java.util.Optional.empty();
+        }
+
+        return convRet;
+    }
+    private static native long do_processSort(long self, short [] buffer);
+    /**
+     * Process i8 audio chunks.
+     * 
+     * Asserts that the audio chunk length should match the return
+     * of the get_samples_per_frame method.
+     * 
+     * Assumes sample rate match the configured for the detector.
+     * 
+     * Asserts that detector bits_per_sample is 8.
+     * 
+     * Asserts that detector sample_format is 'int'.
+     */
+    public final java.util.Optional<RustpotterDetection> processByte(byte [] buffer) {
+        long ret = do_processByte(mNativeObj, buffer);
+        java.util.Optional<RustpotterDetection> convRet;
+        if (ret != 0) {
+            convRet = java.util.Optional.of(new RustpotterDetection(InternalPointerMarker.RAW_PTR, ret));
+        } else {
+            convRet = java.util.Optional.empty();
+        }
+
+        return convRet;
+    }
+    private static native long do_processByte(long self, byte [] buffer);
+    /**
+     * Process f32 audio chunks.
+     * 
+     * Asserts that the audio chunk length should match the return
+     * of the get_samples_per_frame method.
+     * 
+     * Assumes sample rate match the configured for the detector.
+     * 
+     * Asserts that detector bits_per_sample is 32.
+     * 
+     * Asserts that detector sample_format is 'float'.
+     */
+    public final java.util.Optional<RustpotterDetection> processFloat(float [] buffer) {
+        long ret = do_processFloat(mNativeObj, buffer);
+        java.util.Optional<RustpotterDetection> convRet;
+        if (ret != 0) {
+            convRet = java.util.Optional.of(new RustpotterDetection(InternalPointerMarker.RAW_PTR, ret));
+        } else {
+            convRet = java.util.Optional.empty();
+        }
+
+        return convRet;
+    }
+    private static native long do_processFloat(long self, float [] buffer);
+    /**
+     * Loads a wakeword from its model path.
+     */
+    public final void addWakewordModelFile(String path) {
+        do_addWakewordModelFile(mNativeObj, path);
+    }
+    private static native void do_addWakewordModelFile(long self, String path);
+    /**
+     * Returns the desired chunk size.
+     */
     public final long getFrameSize() {
         long ret = do_getFrameSize(mNativeObj);
 

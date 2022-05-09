@@ -1,11 +1,11 @@
 // src/java_glue.rs.in
 use crate::jni_c_header::*;
-use rustpotter::detector::{FeatureDetector, FeatureDetectorBuilder};
-
+use rustpotter::{WakewordDetector, WakewordDetectorBuilder, DetectedWakeword, VadMode, SampleFormat};
 pub struct RustpotterDetection {
     name: String,
     score: f32
 }
+#[allow(non_snake_case)]
 impl RustpotterDetection {
     pub fn new(name: String, score: f32) -> Self {
         Self { name, score }
@@ -17,44 +17,254 @@ impl RustpotterDetection {
         self.score
     }
 }
-
-pub struct RustpotterJava {
-    detector: FeatureDetector
+pub struct RustpotterJavaBuilder {
+    builder: WakewordDetectorBuilder,
 }
-
-impl RustpotterJava {
+#[allow(non_snake_case)]
+impl RustpotterJavaBuilder {
     pub fn new() -> Self {
         Self {
-            detector: FeatureDetectorBuilder::new().build()
+            builder: WakewordDetectorBuilder::new(),
         }
     }
-    pub fn addModel(&mut self, path:String) {
-        self.detector.add_keyword_from_model(path, false, true).unwrap();
+    pub fn setThreshold(&mut self, value: f32) {
+        self.builder.set_threshold(value);
     }
+    pub fn setAveragedThreshold(&mut self, value: f32) {
+        self.builder.set_averaged_threshold(value);
+    }
+    pub fn setBitsPerSample(&mut self, value: u16) {
+        self.builder.set_bits_per_sample(value);
+    }    
+    pub fn setSampleRate(&mut self, value: usize) {
+        self.builder.set_sample_rate(value);
+    }
+    pub fn setSampleFormat(&mut self, value: SampleFormat) {
+        self.builder.set_sample_format(value);
+    }
+    pub fn setComparatorBandSize(&mut self, value: usize) {
+        self.builder.set_comparator_band_size(value);
+    }
+    pub fn setComparatorRef(&mut self, value: f32) {
+        self.builder.set_comparator_ref(value);
+    }
+    pub fn setEagerMode(&mut self, value: bool) {
+        self.builder.set_eager_mode(value);
+    }
+    pub fn setSingleThread(&mut self, value: bool) {
+        self.builder.set_single_thread(value);
+    }
+    pub fn setVADDelay(&mut self, value: u16) {
+        self.builder.set_vad_delay(value);
+    }
+    pub fn setVADSensitivity(&mut self, value: f32) {
+        self.builder.set_vad_sensitivity(value);
+    }
+    pub fn setVADMode(&mut self, value: VadMode) {
+        self.builder.set_vad_mode(value);
+    }
+    pub fn build(&self) -> RustpotterJava {
+        RustpotterJava::new(&self.builder)
+    }
+}
 
-    pub fn processPCMSigned(&mut self, buffer: &[i16]) -> Option<RustpotterDetection> {
-        let results = self.detector.process_pcm_signed(buffer.to_vec());
-        if results.len() > 0 {
-            Some(RustpotterDetection::new(results[0].wakeword.clone(), results[0].score))
-        } else {
-            None
+pub struct RustpotterJava {
+    detector: WakewordDetector
+}
+#[allow(non_snake_case)]
+impl RustpotterJava {
+    pub fn new(builder: &WakewordDetectorBuilder) -> Self {
+        Self {
+            detector: builder.build(),
         }
+    }
+    pub fn addWakewordModelFile(&mut self, path:String) {
+        self.detector.add_keyword_from_model_file(path, true).unwrap();
+    }
+    pub fn process(&mut self, buffer: &[i32]) -> Option<RustpotterDetection> {
+        transform_detection(self.detector.process(buffer))
+    }
+    pub fn processInt(&mut self, buffer: &[i32]) -> Option<RustpotterDetection> {
+        transform_detection(self.detector.process_i32(buffer))
+    }
+    pub fn processSort(&mut self, buffer: &[i16]) -> Option<RustpotterDetection> {
+        transform_detection(self.detector.process_i16(buffer))
+    }
+    pub fn processByte(&mut self, buffer: &[i8]) -> Option<RustpotterDetection> {
+        transform_detection(self.detector.process_i8(buffer))
+    }
+    pub fn processFloat(&mut self, buffer: &[f32]) -> Option<RustpotterDetection> {
+        transform_detection(self.detector.process_f32(buffer))
     }
     pub fn getFrameSize(&self) -> usize {
         self.detector.get_samples_per_frame()
     }
 }
+fn transform_detection(detection_option: Option<DetectedWakeword>) -> Option<RustpotterDetection> {
+    if detection_option.is_some() {
+        let result = detection_option.unwrap();
+        Some(RustpotterDetection::new(result.wakeword.clone(), result.score))
+    } else {
+        None
+    }
+}
+foreign_enum!(
+    enum VadMode {
+        QUALITY = VadMode::Quality,
+        LOW_BITRATE = VadMode::LowBitrate,
+        AGGRESSIVE = VadMode::Aggressive,
+        VERY_AGGRESSIVE = VadMode::VeryAggressive,
+    }
+);
+foreign_enum!(
+    enum SampleFormat {
+        INT = SampleFormat::Int,
+        FLOAT = SampleFormat::Float,
+    }
+);
 foreign_class!(class RustpotterDetection {
     self_type RustpotterDetection;
     private constructor = empty;
     fn RustpotterDetection::getName(&self) -> String;
     fn RustpotterDetection::getScore(&self) -> f32;
 });
+
+foreign_class!(class RustpotterJavaBuilder {
+    self_type RustpotterJavaBuilder;
+    constructor RustpotterJavaBuilder::new() -> RustpotterJavaBuilder;
+    /// Configures the detector threshold,
+    /// is the min score (in range 0. to 1.) that some of
+    /// the wakeword templates should obtain to trigger a detection.
+    ///
+    /// Defaults to 0.5, wakeword defined value takes prevalence if present.
+    fn RustpotterJavaBuilder::setThreshold(&mut self, value: f32);
+    /// Configures the detector threshold,
+    /// is the min score (in range 0. to 1.) that  
+    /// the averaged wakeword template should obtain to allow
+    /// to continue with the detection. This way it can prevent to
+    /// run the comparison of the current frame against each of the wakeword templates.
+    /// If set to 0. this functionality is disabled.
+    ///
+    /// Defaults to half of the configured threshold, wakeword defined value takes prevalence if present.
+    fn RustpotterJavaBuilder::setAveragedThreshold(&mut self, value: f32);
+    /// Configures the detector expected bit per sample for the audio chunks to process.
+    ///
+    /// Defaults to 16; Allowed values: 8, 16, 24, 32
+    fn RustpotterJavaBuilder::setBitsPerSample(&mut self, value: u16);
+    /// Configures the detector expected sample rate for the audio chunks to process.
+    ///
+    /// Defaults to 16000
+    fn RustpotterJavaBuilder::setSampleRate(&mut self, value: usize);
+    /// Configures the detector expected sample format for the audio chunks to process.
+    ///
+    /// Defaults to int
+    fn RustpotterJavaBuilder::setSampleFormat(&mut self, value: SampleFormat);
+    /// Configures the band-size for the comparator used to match the samples.
+    ///
+    /// Defaults to 6
+    fn RustpotterJavaBuilder::setComparatorBandSize(&mut self, value: usize);
+    /// Configures the reference for the comparator used to match the samples.
+    ///
+    /// Defaults to 0.22
+    fn RustpotterJavaBuilder::setComparatorRef(&mut self, value: f32);
+    /// Enables eager mode.
+    /// Terminate the detection as son as one result is above the score,
+    /// instead of wait to see if the next frame has a higher score.
+    ///
+    /// Recommended for real usage.
+    ///
+    /// Defaults to false.
+    fn RustpotterJavaBuilder::setEagerMode(&mut self, value: bool);
+    /// Unless enabled the comparison against multiple wakewords run
+    /// in separate threads.
+    ///
+    /// Defaults to false.
+    ///
+    /// Only applies when more than a wakeword is loaded.
+    fn RustpotterJavaBuilder::setSingleThread(&mut self, value: bool);
+    /// Seconds to disable the vad detector after voice is detected.
+    ///
+    /// Defaults to 3.
+    ///
+    /// Only applies if vad is enabled.
+    fn RustpotterJavaBuilder::setVADDelay(&mut self, value: u16);
+    /// Voice/silence ratio in the last second to consider voice detected.
+    ///
+    /// Defaults to 0.5.
+    ///
+    /// Only applies if vad is enabled.
+    fn RustpotterJavaBuilder::setVADSensitivity(&mut self, value: f32);
+    /// Use a vad detector to reduce computation on absence of voice sound.
+    ///
+    /// Unless specified the vad detector is disabled.
+    fn RustpotterJavaBuilder::setVADMode(&mut self, value: VadMode);
+    /// construct the wakeword detector
+    fn RustpotterJavaBuilder::build(&self) -> RustpotterJava;
+
+});
 foreign_class!(class RustpotterJava {
     self_type RustpotterJava;
-    constructor RustpotterJava::new() -> RustpotterJava;
-    fn RustpotterJava::addModel(&mut self, path: String);
-    fn RustpotterJava::processPCMSigned(&mut self, buffer: &[i16]) -> Option<RustpotterDetection>;
+    private constructor = empty;
+    /// Process i32 audio chunks.
+    /// 
+    /// Asserts that the audio chunk length should match the return
+    /// of the get_samples_per_frame method.
+    /// 
+    /// Assumes sample rate match the configured for the detector.
+    /// 
+    /// Asserts that detector bits_per_sample is one of: 8, 16, 24, 32.
+    /// 
+    /// Asserts that detector sample_format is 'int'.
+    /// 
+    /// It's an alias for the processInt method.
+    fn RustpotterJava::process(&mut self, buffer: &[i32]) -> Option<RustpotterDetection>;
+    /// Process i32 audio chunks.
+    /// 
+    /// Asserts that the audio chunk length should match the return
+    /// of the get_samples_per_frame method.
+    /// 
+    /// Assumes sample rate match the configured for the detector.
+    /// 
+    /// Asserts that detector bits_per_sample is one of: 8, 16, 24, 32.
+    /// 
+    /// Asserts that detector sample_format is 'int'.
+    fn RustpotterJava::processInt(&mut self, buffer: &[i32]) -> Option<RustpotterDetection>;
+    /// Process i16 audio chunks.
+    /// 
+    /// Asserts that the audio chunk length should match the return
+    /// of the get_samples_per_frame method.
+    /// 
+    /// Assumes sample rate match the configured for the detector.
+    /// 
+    /// Asserts that detector bits_per_sample is one of: 8, 16.
+    /// 
+    /// Asserts that detector sample_format is 'int'.
+    fn RustpotterJava::processSort(&mut self, buffer: &[i16]) -> Option<RustpotterDetection>;
+    /// Process i8 audio chunks.
+    /// 
+    /// Asserts that the audio chunk length should match the return
+    /// of the get_samples_per_frame method.
+    /// 
+    /// Assumes sample rate match the configured for the detector.
+    /// 
+    /// Asserts that detector bits_per_sample is 8.
+    /// 
+    /// Asserts that detector sample_format is 'int'.
+    fn RustpotterJava::processByte(&mut self, buffer: &[i8]) -> Option<RustpotterDetection>;
+    /// Process f32 audio chunks.
+    /// 
+    /// Asserts that the audio chunk length should match the return
+    /// of the get_samples_per_frame method.
+    /// 
+    /// Assumes sample rate match the configured for the detector.
+    /// 
+    /// Asserts that detector bits_per_sample is 32.
+    /// 
+    /// Asserts that detector sample_format is 'float'.
+    fn RustpotterJava::processFloat(&mut self, buffer: &[f32]) -> Option<RustpotterDetection>;
+    /// Loads a wakeword from its model path.
+    fn RustpotterJava::addWakewordModelFile(&mut self, path: String);
+    /// Returns the desired chunk size.
     fn RustpotterJava::getFrameSize(&self) -> usize;
     foreign_code r#"
     public static void loadLibrary() {
