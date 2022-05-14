@@ -402,9 +402,9 @@ dependencies = [
 
 [[package]]
 name = "rustpotter"
-version = "0.7.2"
+version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "31fd2d433d98a5447c3ec7b62243beeac895995c9b8e154a2f74a8c5beb85b31"
+checksum = "cc7e9058bb91e5e3ef03cae0183d96a7ccb3e963b0b736eb85de2cc445a02707"
 dependencies = [
  "hound",
  "log",
@@ -419,7 +419,7 @@ dependencies = [
 
 [[package]]
 name = "rustpotter-java"
-version = "0.7.2"
+version = "0.8.1"
 dependencies = [
  "bindgen",
  "flapigen",

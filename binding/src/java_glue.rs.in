@@ -42,6 +42,9 @@ impl RustpotterJavaBuilder {
     pub fn setSampleFormat(&mut self, value: SampleFormat) {
         self.builder.set_sample_format(value);
     }
+    pub fn setChannels(&mut self, value: u16) {
+        self.builder.set_channels(value);
+    }
     pub fn setComparatorBandSize(&mut self, value: usize) {
         self.builder.set_comparator_band_size(value);
     }
@@ -79,7 +82,7 @@ impl RustpotterJava {
         }
     }
     pub fn addWakewordModelFile(&mut self, path:String) {
-        self.detector.add_keyword_from_model_file(path, true).unwrap();
+        self.detector.add_wakeword_from_model_file(path, true).unwrap();
     }
     pub fn process(&mut self, buffer: &[i32]) -> Option<RustpotterDetection> {
         transform_detection(self.detector.process(buffer))
@@ -159,6 +162,11 @@ foreign_class!(class RustpotterJavaBuilder {
     ///
     /// Defaults to int
     fn RustpotterJavaBuilder::setSampleFormat(&mut self, value: SampleFormat);
+    /// Configures the detector expected number of channels for the audio chunks to process.
+    /// Rustpotter will only use data for first channel.
+    ///
+    /// Defaults to 1
+    fn RustpotterJavaBuilder::setChannels(&mut self, value: u16);
     /// Configures the band-size for the comparator used to match the samples.
     ///
     /// Defaults to 6

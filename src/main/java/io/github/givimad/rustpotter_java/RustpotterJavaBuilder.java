@@ -64,6 +64,16 @@ public final class RustpotterJavaBuilder {
     }
     private static native void do_setSampleFormat(long self, int value);
     /**
+     * Configures the detector expected number of channels for the audio chunks to process.
+     * Rustpotter will only use data for first channel.
+     * 
+     * Defaults to 1
+     */
+    public final void setChannels(int value) {
+        do_setChannels(mNativeObj, value);
+    }
+    private static native void do_setChannels(long self, int value);
+    /**
      * Configures the band-size for the comparator used to match the samples.
      * 
      * Defaults to 6

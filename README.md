@@ -6,4 +6,4 @@
 
 ## Description
 
-Java wrapper for [Rustpotter](https://github.com/GiviMAD/rustpotter) (a personal keywords spotter written in Rust).
+Java wrapper for [Rustpotter](https://github.com/GiviMAD/rustpotter) (a free and open source wake word spotter forged in rust).
