@@ -135,12 +135,12 @@ jobs:
       run: ls -R
     - name: setup resources
       run: |
-        mv ./debian-binary/librustpotter_java_debian_x86_64.so ./src/resources/librustpotter_java_debian_x86_64.so
-        mv ./debian-binary-arm/librustpotter_java_debian_armv7l.so ./src/resources/librustpotter_java_debian_armv7l.so
-        mv ./debian-binary-arm64/librustpotter_java_debian_aarch64.so ./src/resources/librustpotter_java_debian_aarch64.so
-        mv ./windows-binary-x86_64/librustpotter_java_win_x86_64.dll ./src/resources/librustpotter_java_win_x86_64.dll  
-        mv ./macos-binary-x86_64/librustpotter_java_macos_x86_64.dylib ./src/resources/librustpotter_java_macos_x86_64.dylib
-        mv ./macos-binary-arm64/librustpotter_java_macos_aarch64.dylib ./src/resources/librustpotter_java_macos_aarch64.dylib
+        mv ./debian-binary/librustpotter_java_debian_x86_64.so ./src/main/resources/librustpotter_java_debian_x86_64.so
+        mv ./debian-binary-arm/librustpotter_java_debian_armv7l.so ./src/main/resources/librustpotter_java_debian_armv7l.so
+        mv ./debian-binary-arm64/librustpotter_java_debian_aarch64.so ./src/main/resources/librustpotter_java_debian_aarch64.so
+        mv ./windows-binary-x86_64/librustpotter_java_win_x86_64.dll ./src/main/resources/librustpotter_java_win_x86_64.dll  
+        mv ./macos-binary-x86_64/librustpotter_java_macos_x86_64.dylib ./src/main/resources/librustpotter_java_macos_x86_64.dylib
+        mv ./macos-binary-arm64/librustpotter_java_macos_aarch64.dylib ./src/main/resources/librustpotter_java_macos_aarch64.dylib
     - name: Set up Maven Central Repository
       uses: actions/setup-java@v1
       with:
