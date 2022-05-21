@@ -5,14 +5,18 @@ package io.github.givimad.rustpotter_java;
 public final class RustpotterDetection {
 
     private RustpotterDetection() {}
-
+    /**
+     * Get detected wakeword name
+     */
     public final String getName() {
         String ret = do_getName(mNativeObj);
 
         return ret;
     }
     private static native String do_getName(long self);
-
+    /**
+     * Get detected wakeword score
+     */
     public final float getScore() {
         float ret = do_getScore(mNativeObj);
 

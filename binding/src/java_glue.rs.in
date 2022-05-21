@@ -128,7 +128,9 @@ foreign_enum!(
 foreign_class!(class RustpotterDetection {
     self_type RustpotterDetection;
     private constructor = empty;
+    /// Get detected wakeword name
     fn RustpotterDetection::getName(&self) -> String;
+    /// Get detected wakeword score
     fn RustpotterDetection::getScore(&self) -> f32;
 });
 
