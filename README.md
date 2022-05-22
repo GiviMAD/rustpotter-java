@@ -19,7 +19,7 @@ The distributed package support the following platforms:
 
 ## Examples
 
-# Initialize the Detector:
+### Initialize the Detector:
 
 ```java
 var rustpotterBuilder = new RustpotterJavaBuilder();
@@ -40,7 +40,7 @@ rustpotterBuilder.delete();
 rustpotter.addWakewordModelFile(modelPath.toString());
 ```
 
-# Detect Wakewords:
+### Detect Wakewords:
 
 ```java
 private void processAudioStream(RustpotterJava rustpotter, Consumer<String> listener, InputStream audioStream, AtomicBoolean aborted) {
