@@ -9,7 +9,7 @@ public final class RustpotterJava {
      * Process i32 audio chunks.
      * 
      * Asserts that the audio chunk length should match the return
-     * of the get_samples_per_frame method.
+     * of the getSamplesPerFrame method.
      * 
      * Assumes sample rate match the configured for the detector.
      * 
@@ -35,7 +35,7 @@ public final class RustpotterJava {
      * Process i32 audio chunks.
      * 
      * Asserts that the audio chunk length should match the return
-     * of the get_samples_per_frame method.
+     * of the getSamplesPerFrame method.
      * 
      * Assumes sample rate match the configured for the detector.
      * 
@@ -59,7 +59,7 @@ public final class RustpotterJava {
      * Process i16 audio chunks.
      * 
      * Asserts that the audio chunk length should match the return
-     * of the get_samples_per_frame method.
+     * of the getSamplesPerFrame method.
      * 
      * Assumes sample rate match the configured for the detector.
      * 
@@ -83,7 +83,7 @@ public final class RustpotterJava {
      * Process i8 audio chunks.
      * 
      * Asserts that the audio chunk length should match the return
-     * of the get_samples_per_frame method.
+     * of the getSamplesPerFrame method.
      * 
      * Assumes sample rate match the configured for the detector.
      * 
@@ -107,7 +107,7 @@ public final class RustpotterJava {
      * Process f32 audio chunks.
      * 
      * Asserts that the audio chunk length should match the return
-     * of the get_samples_per_frame method.
+     * of the getSamplesPerFrame method.
      * 
      * Assumes sample rate match the configured for the detector.
      * 
@@ -128,6 +128,26 @@ public final class RustpotterJava {
     }
     private static native long do_processFloat(long self, float [] buffer);
     /**
+     * Process audio chunks in bytes.
+     * 
+     * Asserts that the audio chunk length should match the return
+     * of the getBytesPerFrame method.
+     * 
+     * Assumes sample rate match the configured for the detector.
+     */
+    public final java.util.Optional<RustpotterDetection> processBuffer(byte [] buffer) {
+        long ret = do_processBuffer(mNativeObj, buffer);
+        java.util.Optional<RustpotterDetection> convRet;
+        if (ret != 0) {
+            convRet = java.util.Optional.of(new RustpotterDetection(InternalPointerMarker.RAW_PTR, ret));
+        } else {
+            convRet = java.util.Optional.empty();
+        }
+
+        return convRet;
+    }
+    private static native long do_processBuffer(long self, byte [] buffer);
+    /**
      * Loads a wakeword from its model path.
      */
     public final void addWakewordModelFile(String path) {
@@ -135,14 +155,65 @@ public final class RustpotterJava {
     }
     private static native void do_addWakewordModelFile(long self, String path);
     /**
+     * Loads a wakeword from its model bytes.
+     */
+    public final void addWakewordModelBytes(byte [] bytes) {
+        do_addWakewordModelBytes(mNativeObj, bytes);
+    }
+    private static native void do_addWakewordModelBytes(long self, byte [] bytes);
+    /**
      * Returns the desired chunk size.
      */
-    public final long getFrameSize() {
-        long ret = do_getFrameSize(mNativeObj);
+    public final long getSamplesPerFrame() {
+        long ret = do_getSamplesPerFrame(mNativeObj);
 
         return ret;
     }
-    private static native long do_getFrameSize(long self);
+    private static native long do_getSamplesPerFrame(long self);
+    /**
+     * Returns size in bytes for the desired chunk.
+     */
+    public final long getBytesPerFrame() {
+        long ret = do_getBytesPerFrame(mNativeObj);
+
+        return ret;
+    }
+    private static native long do_getBytesPerFrame(long self);
+    /**
+     * Removes a wakeword by name.
+     */
+    public final void removeWakeword(String name) {
+        do_removeWakeword(mNativeObj, name);
+    }
+    private static native void do_removeWakeword(long self, String name);
+    /**
+     * Sets detector threshold.
+     */
+    public final void setThreshold(float threshold) {
+        do_setThreshold(mNativeObj, threshold);
+    }
+    private static native void do_setThreshold(long self, float threshold);
+    /**
+     * Sets detector averaged threshold.
+     */
+    public final void setAveragedThreshold(float averaged_threshold) {
+        do_setAveragedThreshold(mNativeObj, averaged_threshold);
+    }
+    private static native void do_setAveragedThreshold(long self, float averaged_threshold);
+    /**
+     * Sets wakeword threshold.
+     */
+    public final void setWakewordThreshold(String name, float threshold) {
+        do_setWakewordThreshold(mNativeObj, name, threshold);
+    }
+    private static native void do_setWakewordThreshold(long self, String name, float threshold);
+    /**
+     * Sets wakeword averaged threshold.
+     */
+    public final void setWakewordAveragedThreshold(String name, float averaged_threshold) {
+        do_setWakewordAveragedThreshold(mNativeObj, name, averaged_threshold);
+    }
+    private static native void do_setWakewordAveragedThreshold(long self, String name, float averaged_threshold);
 
     public synchronized void delete() {
         if (mNativeObj != 0) {
@@ -166,39 +237,33 @@ public final class RustpotterJava {
     }
     /*package*/ long mNativeObj;
 
-    public static void loadLibrary() {
-        try {
-            String osName = System.getProperty("os.name").toLowerCase();
-            String osArch = System.getProperty("os.arch").toLowerCase();
-            if (osName.contains("win")) {
-                if(osArch.contains("amd64") || osArch.contains("x86_64")) {
-                    NativeUtils.loadLibraryFromJar("/librustpotter_java_win_x86_64.dll");
-                    return;
-                }
-            } else if (osName.contains("nix") || osName.contains("nux")
-                    || osName.contains("aix")) {
-                if(osArch.contains("amd64") || osArch.contains("x86_64")) {
-                    NativeUtils.loadLibraryFromJar("/librustpotter_java_debian_x86_64.so");
-                    return;
-                } else if(osArch.contains("aarch64") || osArch.contains("arm64")) {
-                    NativeUtils.loadLibraryFromJar("/librustpotter_java_debian_aarch64.so");
-                    return;
-                } else if(osArch.contains("armv7") || osArch.contains("arm")) {
-                    NativeUtils.loadLibraryFromJar("/librustpotter_java_debian_armv7l.so");
-                    return;
-                }
-            } else if (osName.contains("mac") || osName.contains("darwin")) {
-                if(osArch.contains("amd64") || osArch.contains("x86_64")) {
-                    NativeUtils.loadLibraryFromJar("/librustpotter_java_macos_x86_64.dylib");
-                    return;
-                } else if(osArch.contains("aarch64") || osArch.contains("arm64")) {
-                    NativeUtils.loadLibraryFromJar("/librustpotter_java_macos_aarch64.dylib");
-                    return;
-                }
+    public static void loadLibrary() throws java.io.IOException {
+        String bundleLibraryPath = null;
+        String osName = System.getProperty("os.name").toLowerCase();
+        String osArch = System.getProperty("os.arch").toLowerCase();
+        if (osName.contains("win")) {
+            if(osArch.contains("amd64") || osArch.contains("x86_64")) {
+                bundleLibraryPath = "/librustpotter_java_win_x86_64.dll";
             }
-            throw new java.io.IOException("Rustpotter: Unsupported platform.");
-        } catch (java.io.IOException e) {
-            e.printStackTrace();
+        } else if (osName.contains("nix") || osName.contains("nux")
+                || osName.contains("aix")) {
+            if(osArch.contains("amd64") || osArch.contains("x86_64")) {
+                bundleLibraryPath = "/librustpotter_java_debian_x86_64.so";
+            } else if(osArch.contains("aarch64") || osArch.contains("arm64")) {
+                bundleLibraryPath = "/librustpotter_java_debian_aarch64.so";
+            } else if(osArch.contains("armv7") || osArch.contains("arm")) {
+                bundleLibraryPath = "/librustpotter_java_debian_armv7l.so";
+            }
+        } else if (osName.contains("mac") || osName.contains("darwin")) {
+            if(osArch.contains("amd64") || osArch.contains("x86_64")) {
+                bundleLibraryPath = "/librustpotter_java_macos_x86_64.dylib";
+            } else if(osArch.contains("aarch64") || osArch.contains("arm64")) {
+                bundleLibraryPath = "/librustpotter_java_macos_aarch64.dylib";
+            }
         }
+        if (bundleLibraryPath == null) {
+            throw new java.io.IOException("Rustpotter: Unsupported platform.");
+        }
+        NativeUtils.loadLibraryFromJar(bundleLibraryPath);
     }
 }

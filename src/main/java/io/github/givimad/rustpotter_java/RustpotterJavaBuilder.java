@@ -92,6 +92,16 @@ public final class RustpotterJavaBuilder {
     }
     private static native void do_setComparatorRef(long self, float value);
     /**
+     * Configures consecutive number of samples containing only silence for
+     * skip the comparison against the wakewords to avoid useless cpu consumption.
+     * 
+     * Defaults to 3, 0 for disabled.
+     */
+    public final void setMaxSilenceFrames(int value) {
+        do_setMaxSilenceFrames(mNativeObj, value);
+    }
+    private static native void do_setMaxSilenceFrames(long self, int value);
+    /**
      * Enables eager mode.
      * Terminate the detection as son as one result is above the score,
      * instead of wait to see if the next frame has a higher score.

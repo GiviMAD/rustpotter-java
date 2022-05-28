@@ -4,7 +4,7 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class RustpotterJavaTest {
-    @Test public void getFrameSizeFromRust() {
+    @Test public void getFrameSizeFromRust() throws java.io.IOException {
         RustpotterJava.loadLibrary();
         RustpotterJava rustpotter = new RustpotterJavaBuilder().build();
         var frameSize = rustpotter.getFrameSize();

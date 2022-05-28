@@ -1,9 +1,11 @@
 // src/java_glue.rs.in
 use crate::jni_c_header::*;
-use rustpotter::{WakewordDetector, WakewordDetectorBuilder, DetectedWakeword, VadMode, SampleFormat};
+use rustpotter::{
+    DetectedWakeword, SampleFormat, VadMode, WakewordDetector, WakewordDetectorBuilder,
+};
 pub struct RustpotterDetection {
     name: String,
-    score: f32
+    score: f32,
 }
 #[allow(non_snake_case)]
 impl RustpotterDetection {
@@ -35,7 +37,7 @@ impl RustpotterJavaBuilder {
     }
     pub fn setBitsPerSample(&mut self, value: u16) {
         self.builder.set_bits_per_sample(value);
-    }    
+    }
     pub fn setSampleRate(&mut self, value: usize) {
         self.builder.set_sample_rate(value);
     }
@@ -50,6 +52,9 @@ impl RustpotterJavaBuilder {
     }
     pub fn setComparatorRef(&mut self, value: f32) {
         self.builder.set_comparator_ref(value);
+    }
+    pub fn setMaxSilenceFrames(&mut self, value: u16) {
+        self.builder.set_max_silence_frames(value);
     }
     pub fn setEagerMode(&mut self, value: bool) {
         self.builder.set_eager_mode(value);
@@ -72,7 +77,7 @@ impl RustpotterJavaBuilder {
 }
 
 pub struct RustpotterJava {
-    detector: WakewordDetector
+    detector: WakewordDetector,
 }
 #[allow(non_snake_case)]
 impl RustpotterJava {
@@ -81,11 +86,21 @@ impl RustpotterJava {
             detector: builder.build(),
         }
     }
-    pub fn addWakewordModelFile(&mut self, path:String) {
-        self.detector.add_wakeword_from_model_file(path, true).unwrap();
+    pub fn addWakewordModelFile(&mut self, path: String) {
+        self.detector
+            .add_wakeword_from_model_file(path, true)
+            .unwrap();
+    }
+    pub fn addWakewordModelBytes(&mut self, bytes: &[u8]) {
+        self.detector
+            .add_wakeword_from_model_bytes(bytes.to_vec(), true)
+            .unwrap();
     }
     pub fn process(&mut self, buffer: &[i32]) -> Option<RustpotterDetection> {
         transform_detection(self.detector.process(buffer))
+    }
+    pub fn processBuffer(&mut self, buffer: &[u8]) -> Option<RustpotterDetection> {
+        transform_detection(self.detector.process_buffer(buffer))
     }
     pub fn processInt(&mut self, buffer: &[i32]) -> Option<RustpotterDetection> {
         transform_detection(self.detector.process_i32(buffer))
@@ -99,18 +114,65 @@ impl RustpotterJava {
     pub fn processFloat(&mut self, buffer: &[f32]) -> Option<RustpotterDetection> {
         transform_detection(self.detector.process_f32(buffer))
     }
-    pub fn getFrameSize(&self) -> usize {
+    pub fn getSamplesPerFrame(&self) -> usize {
         self.detector.get_samples_per_frame()
+    }
+    pub fn getBytesPerFrame(&self) -> usize {
+        self.detector.get_bytes_per_frame()
+    }
+    pub fn removeWakeword(&mut self, name: &str) {
+        self.detector.remove_wakeword(name);
+    }
+    pub fn setThreshold(&mut self, threshold: f32) {
+        self.detector.set_threshold(threshold);
+    }
+    pub fn setAveragedThreshold(&mut self, averaged_threshold: f32) {
+        self.detector.set_averaged_threshold(averaged_threshold);
+    }
+    pub fn setWakewordThreshold(&mut self, name: &str, threshold: f32) {
+        self.detector.set_wakeword_threshold(name, threshold);
+    }
+    pub fn setWakewordAveragedThreshold(&mut self, name: &str, averaged_threshold: f32) {
+        self.detector.set_wakeword_averaged_threshold(name, averaged_threshold);
     }
 }
 fn transform_detection(detection_option: Option<DetectedWakeword>) -> Option<RustpotterDetection> {
     if detection_option.is_some() {
         let result = detection_option.unwrap();
-        Some(RustpotterDetection::new(result.wakeword.clone(), result.score))
+        Some(RustpotterDetection::new(
+            result.wakeword.clone(),
+            result.score,
+        ))
     } else {
         None
     }
 }
+
+foreign_typemap!(
+    ($p:r_type) Vec<u8> => jbyteArray {
+        let slice = &($p)[..];
+        let slice = unsafe { std::mem::transmute::<&[u8], &[i8]>(slice) };
+        let raw = JavaByteArray::from_slice_to_raw(slice, env);
+        $out = raw;
+    };
+    ($p:f_type) => "jbyteArray";
+);
+
+foreign_typemap!(
+    ($p:r_type) &'a [u8] => jbyteArray {
+        let slice = unsafe { std::mem::transmute::<&[u8], &[i8]>($p) };
+        let raw = JavaByteArray::from_slice_to_raw(slice, env);
+        $out = raw;
+    };
+    ($p:f_type) => "jbyteArray";
+    ($p:r_type) &'a [u8] <= jbyteArray {
+        let arr = JavaByteArray::new(env, $p);
+        let slice = arr.to_slice();
+        let slice = unsafe { std::mem::transmute::<&[i8], &[u8]>(slice) };
+        $out = slice;
+    };
+    ($p:f_type) <= "jbyteArray";
+);
 foreign_enum!(
     enum VadMode {
         QUALITY = VadMode::Quality,
@@ -144,7 +206,7 @@ foreign_class!(class RustpotterJavaBuilder {
     /// Defaults to 0.5, wakeword defined value takes prevalence if present.
     fn RustpotterJavaBuilder::setThreshold(&mut self, value: f32);
     /// Configures the detector threshold,
-    /// is the min score (in range 0. to 1.) that  
+    /// is the min score (in range 0. to 1.) that
     /// the averaged wakeword template should obtain to allow
     /// to continue with the detection. This way it can prevent to
     /// run the comparison of the current frame against each of the wakeword templates.
@@ -177,6 +239,11 @@ foreign_class!(class RustpotterJavaBuilder {
     ///
     /// Defaults to 0.22
     fn RustpotterJavaBuilder::setComparatorRef(&mut self, value: f32);
+    /// Configures consecutive number of samples containing only silence for
+    /// skip the comparison against the wakewords to avoid useless cpu consumption.
+    ///
+    /// Defaults to 3, 0 for disabled.
+    fn RustpotterJavaBuilder::setMaxSilenceFrames(&mut self, value: u16);
     /// Enables eager mode.
     /// Terminate the detection as son as one result is above the score,
     /// instead of wait to see if the next frame has a higher score.
@@ -216,101 +283,116 @@ foreign_class!(class RustpotterJava {
     self_type RustpotterJava;
     private constructor = empty;
     /// Process i32 audio chunks.
-    /// 
+    ///
     /// Asserts that the audio chunk length should match the return
-    /// of the get_samples_per_frame method.
-    /// 
+    /// of the getSamplesPerFrame method.
+    ///
     /// Assumes sample rate match the configured for the detector.
-    /// 
+    ///
     /// Asserts that detector bits_per_sample is one of: 8, 16, 24, 32.
-    /// 
+    ///
     /// Asserts that detector sample_format is 'int'.
-    /// 
+    ///
     /// It's an alias for the processInt method.
     fn RustpotterJava::process(&mut self, buffer: &[i32]) -> Option<RustpotterDetection>;
     /// Process i32 audio chunks.
-    /// 
+    ///
     /// Asserts that the audio chunk length should match the return
-    /// of the get_samples_per_frame method.
-    /// 
+    /// of the getSamplesPerFrame method.
+    ///
     /// Assumes sample rate match the configured for the detector.
-    /// 
+    ///
     /// Asserts that detector bits_per_sample is one of: 8, 16, 24, 32.
-    /// 
+    ///
     /// Asserts that detector sample_format is 'int'.
     fn RustpotterJava::processInt(&mut self, buffer: &[i32]) -> Option<RustpotterDetection>;
     /// Process i16 audio chunks.
-    /// 
+    ///
     /// Asserts that the audio chunk length should match the return
-    /// of the get_samples_per_frame method.
-    /// 
+    /// of the getSamplesPerFrame method.
+    ///
     /// Assumes sample rate match the configured for the detector.
-    /// 
+    ///
     /// Asserts that detector bits_per_sample is one of: 8, 16.
-    /// 
+    ///
     /// Asserts that detector sample_format is 'int'.
     fn RustpotterJava::processSort(&mut self, buffer: &[i16]) -> Option<RustpotterDetection>;
     /// Process i8 audio chunks.
-    /// 
+    ///
     /// Asserts that the audio chunk length should match the return
-    /// of the get_samples_per_frame method.
-    /// 
+    /// of the getSamplesPerFrame method.
+    ///
     /// Assumes sample rate match the configured for the detector.
-    /// 
+    ///
     /// Asserts that detector bits_per_sample is 8.
-    /// 
+    ///
     /// Asserts that detector sample_format is 'int'.
     fn RustpotterJava::processByte(&mut self, buffer: &[i8]) -> Option<RustpotterDetection>;
     /// Process f32 audio chunks.
-    /// 
+    ///
     /// Asserts that the audio chunk length should match the return
-    /// of the get_samples_per_frame method.
-    /// 
+    /// of the getSamplesPerFrame method.
+    ///
     /// Assumes sample rate match the configured for the detector.
-    /// 
+    ///
     /// Asserts that detector bits_per_sample is 32.
-    /// 
+    ///
     /// Asserts that detector sample_format is 'float'.
     fn RustpotterJava::processFloat(&mut self, buffer: &[f32]) -> Option<RustpotterDetection>;
+    /// Process audio chunks in bytes.
+    ///
+    /// Asserts that the audio chunk length should match the return
+    /// of the getBytesPerFrame method.
+    ///
+    /// Assumes sample rate match the configured for the detector.
+    fn RustpotterJava::processBuffer(&mut self, buffer: &[u8]) -> Option<RustpotterDetection>;
     /// Loads a wakeword from its model path.
     fn RustpotterJava::addWakewordModelFile(&mut self, path: String);
+    /// Loads a wakeword from its model bytes.
+    fn RustpotterJava::addWakewordModelBytes(&mut self, bytes: &[u8]);
     /// Returns the desired chunk size.
-    fn RustpotterJava::getFrameSize(&self) -> usize;
+    fn RustpotterJava::getSamplesPerFrame(&self) -> usize;
+    /// Returns size in bytes for the desired chunk.
+    fn RustpotterJava::getBytesPerFrame(&self) -> usize;
+    /// Removes a wakeword by name.
+    fn RustpotterJava::removeWakeword(&mut self, name: &str);
+    /// Sets detector threshold.
+    fn RustpotterJava::setThreshold(&mut self, threshold: f32);
+    /// Sets detector averaged threshold.
+    fn RustpotterJava::setAveragedThreshold(&mut self, averaged_threshold: f32);
+    /// Sets wakeword threshold.
+    fn RustpotterJava::setWakewordThreshold(&mut self, name: &str, threshold: f32);
+    /// Sets wakeword averaged threshold.
+    fn RustpotterJava::setWakewordAveragedThreshold(&mut self, name: &str, averaged_threshold: f32);
     foreign_code r#"
-    public static void loadLibrary() {
-        try {
-            String osName = System.getProperty("os.name").toLowerCase();
-            String osArch = System.getProperty("os.arch").toLowerCase();
-            if (osName.contains("win")) {
-                if(osArch.contains("amd64") || osArch.contains("x86_64")) {
-                    NativeUtils.loadLibraryFromJar("/librustpotter_java_win_x86_64.dll");
-                    return;
-                }
-            } else if (osName.contains("nix") || osName.contains("nux")
-                    || osName.contains("aix")) {
-                if(osArch.contains("amd64") || osArch.contains("x86_64")) {
-                    NativeUtils.loadLibraryFromJar("/librustpotter_java_debian_x86_64.so");
-                    return;
-                } else if(osArch.contains("aarch64") || osArch.contains("arm64")) {
-                    NativeUtils.loadLibraryFromJar("/librustpotter_java_debian_aarch64.so");
-                    return;
-                } else if(osArch.contains("armv7") || osArch.contains("arm")) {
-                    NativeUtils.loadLibraryFromJar("/librustpotter_java_debian_armv7l.so");
-                    return;
-                }
-            } else if (osName.contains("mac") || osName.contains("darwin")) {
-                if(osArch.contains("amd64") || osArch.contains("x86_64")) {
-                    NativeUtils.loadLibraryFromJar("/librustpotter_java_macos_x86_64.dylib");
-                    return;
-                } else if(osArch.contains("aarch64") || osArch.contains("arm64")) {
-                    NativeUtils.loadLibraryFromJar("/librustpotter_java_macos_aarch64.dylib");
-                    return;
-                }
+    public static void loadLibrary() throws java.io.IOException {
+        String bundleLibraryPath = null;
+        String osName = System.getProperty("os.name").toLowerCase();
+        String osArch = System.getProperty("os.arch").toLowerCase();
+        if (osName.contains("win")) {
+            if(osArch.contains("amd64") || osArch.contains("x86_64")) {
+                bundleLibraryPath = "/librustpotter_java_win_x86_64.dll";
             }
-            throw new java.io.IOException("Rustpotter: Unsupported platform.");
-        } catch (java.io.IOException e) {
-            e.printStackTrace();
+        } else if (osName.contains("nix") || osName.contains("nux")
+                || osName.contains("aix")) {
+            if(osArch.contains("amd64") || osArch.contains("x86_64")) {
+                bundleLibraryPath = "/librustpotter_java_debian_x86_64.so";
+            } else if(osArch.contains("aarch64") || osArch.contains("arm64")) {
+                bundleLibraryPath = "/librustpotter_java_debian_aarch64.so";
+            } else if(osArch.contains("armv7") || osArch.contains("arm")) {
+                bundleLibraryPath = "/librustpotter_java_debian_armv7l.so";
+            }
+        } else if (osName.contains("mac") || osName.contains("darwin")) {
+            if(osArch.contains("amd64") || osArch.contains("x86_64")) {
+                bundleLibraryPath = "/librustpotter_java_macos_x86_64.dylib";
+            } else if(osArch.contains("aarch64") || osArch.contains("arm64")) {
+                bundleLibraryPath = "/librustpotter_java_macos_aarch64.dylib";
+            }
         }
+        if (bundleLibraryPath == null) {
+            throw new java.io.IOException("Rustpotter: Unsupported platform.");
+        }
+        NativeUtils.loadLibraryFromJar(bundleLibraryPath);
     }
 "#;
 });
