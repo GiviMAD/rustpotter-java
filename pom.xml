@@ -6,7 +6,7 @@
 
   <groupId>io.github.givimad</groupId>
   <artifactId>rustpotter-java</artifactId>
-  <version>0.10.0</version>
+  <version>0.10.1</version>
 
   <name>rustpotter-java</name>
   <url>https://github.com/GiviMAD/rustpotter-java</url>
