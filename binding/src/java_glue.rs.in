@@ -1,7 +1,8 @@
 // src/java_glue.rs.in
 use crate::jni_c_header::*;
 use rustpotter::{
-    DetectedWakeword, SampleFormat, VadMode, WakewordDetector, WakewordDetectorBuilder,
+    DetectedWakeword, NoiseDetectionMode, SampleFormat, VadMode, WakewordDetector,
+    WakewordDetectorBuilder,
 };
 pub struct RustpotterDetection {
     name: String,
@@ -53,14 +54,20 @@ impl RustpotterJavaBuilder {
     pub fn setComparatorRef(&mut self, value: f32) {
         self.builder.set_comparator_ref(value);
     }
-    pub fn setMaxSilenceFrames(&mut self, value: u16) {
-        self.builder.set_max_silence_frames(value);
-    }
     pub fn setEagerMode(&mut self, value: bool) {
         self.builder.set_eager_mode(value);
     }
     pub fn setSingleThread(&mut self, value: bool) {
         self.builder.set_single_thread(value);
+    }
+    pub fn setNoiseDelay(&mut self, value: u16) {
+        self.builder.set_noise_delay(value);
+    }
+    pub fn setNoiseSensitivity(&mut self, value: f32) {
+        self.builder.set_noise_sensitivity(value);
+    }
+    pub fn setNoiseMode(&mut self, value: NoiseDetectionMode) {
+        self.builder.set_noise_mode(value);
     }
     pub fn setVADDelay(&mut self, value: u16) {
         self.builder.set_vad_delay(value);
@@ -133,7 +140,8 @@ impl RustpotterJava {
         self.detector.set_wakeword_threshold(name, threshold);
     }
     pub fn setWakewordAveragedThreshold(&mut self, name: &str, averaged_threshold: f32) {
-        self.detector.set_wakeword_averaged_threshold(name, averaged_threshold);
+        self.detector
+            .set_wakeword_averaged_threshold(name, averaged_threshold);
     }
 }
 fn transform_detection(detection_option: Option<DetectedWakeword>) -> Option<RustpotterDetection> {
@@ -179,6 +187,15 @@ foreign_enum!(
         LOW_BITRATE = VadMode::LowBitrate,
         AGGRESSIVE = VadMode::Aggressive,
         VERY_AGGRESSIVE = VadMode::VeryAggressive,
+    }
+);
+foreign_enum!(
+    enum NoiseDetectionMode {
+        EASYEST = NoiseDetectionMode::Easiest,
+        EASY = NoiseDetectionMode::Easy,
+        NORMAL = NoiseDetectionMode::Normal,
+        HIGH = NoiseDetectionMode::Hard,
+        HIGHEST = NoiseDetectionMode::Hardest,
     }
 );
 foreign_enum!(
@@ -239,11 +256,6 @@ foreign_class!(class RustpotterJavaBuilder {
     ///
     /// Defaults to 0.22
     fn RustpotterJavaBuilder::setComparatorRef(&mut self, value: f32);
-    /// Configures consecutive number of samples containing only silence for
-    /// skip the comparison against the wakewords to avoid useless cpu consumption.
-    ///
-    /// Defaults to 3, 0 for disabled.
-    fn RustpotterJavaBuilder::setMaxSilenceFrames(&mut self, value: u16);
     /// Enables eager mode.
     /// Terminate the detection as son as one result is above the score,
     /// instead of wait to see if the next frame has a higher score.
@@ -259,6 +271,24 @@ foreign_class!(class RustpotterJavaBuilder {
     ///
     /// Only applies when more than a wakeword is loaded.
     fn RustpotterJavaBuilder::setSingleThread(&mut self, value: bool);
+    /// Seconds to disable the noise detection after voice is detected.
+    ///
+    /// Defaults to 3.
+    ///
+    /// Only applies if noise mode is set, if 0 noise detection is not disabled after a detection.
+    fn RustpotterJavaBuilder::setNoiseDelay(&mut self, value: u16);
+    /// Noise/silence ratio in the last second to consider voice detected.
+    ///
+    /// Defaults to 0.5.
+    ///
+    /// Only applies if noise mode is set.
+    fn RustpotterJavaBuilder::setNoiseSensitivity(&mut self, value: f32);
+    /// Use build-in noise detection to reduce computation on absence of noise.
+    ///
+    /// Configures how difficult is to considering a frame as noise (the required noise lever).
+    /// 
+    /// Unless specified the noise detection is disabled.
+    fn RustpotterJavaBuilder::setNoiseMode(&mut self, value: NoiseDetectionMode);
     /// Seconds to disable the vad detector after voice is detected.
     ///
     /// Defaults to 3.

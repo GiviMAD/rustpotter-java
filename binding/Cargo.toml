@@ -1,6 +1,6 @@
 [package]
 name = "rustpotter-java"
-version = "0.10.1"
+version = "0.11.0"
 edition = "2021"
 description = "Java binding for Rustpotter, a free and open source wake word spotter forged in rust."
 
@@ -10,7 +10,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 log = "^0.4.6"
-rustpotter = { version = "0.10.1", features = ["vad"] }
+rustpotter = { version = "0.11.0", features = ["vad"] }
 
 [build-dependencies]
 flapigen = "0.6.0-pre9"

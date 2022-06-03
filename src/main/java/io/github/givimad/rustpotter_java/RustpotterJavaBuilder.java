@@ -92,16 +92,6 @@ public final class RustpotterJavaBuilder {
     }
     private static native void do_setComparatorRef(long self, float value);
     /**
-     * Configures consecutive number of samples containing only silence for
-     * skip the comparison against the wakewords to avoid useless cpu consumption.
-     * 
-     * Defaults to 3, 0 for disabled.
-     */
-    public final void setMaxSilenceFrames(int value) {
-        do_setMaxSilenceFrames(mNativeObj, value);
-    }
-    private static native void do_setMaxSilenceFrames(long self, int value);
-    /**
      * Enables eager mode.
      * Terminate the detection as son as one result is above the score,
      * instead of wait to see if the next frame has a higher score.
@@ -126,6 +116,42 @@ public final class RustpotterJavaBuilder {
         do_setSingleThread(mNativeObj, value);
     }
     private static native void do_setSingleThread(long self, boolean value);
+    /**
+     * Seconds to disable the noise detection after voice is detected.
+     * 
+     * Defaults to 3.
+     * 
+     * Only applies if noise mode is set, if 0 noise detection is not disabled after a detection.
+     */
+    public final void setNoiseDelay(int value) {
+        do_setNoiseDelay(mNativeObj, value);
+    }
+    private static native void do_setNoiseDelay(long self, int value);
+    /**
+     * Noise/silence ratio in the last second to consider voice detected.
+     * 
+     * Defaults to 0.5.
+     * 
+     * Only applies if noise mode is set.
+     */
+    public final void setNoiseSensitivity(float value) {
+        do_setNoiseSensitivity(mNativeObj, value);
+    }
+    private static native void do_setNoiseSensitivity(long self, float value);
+    /**
+     * Use build-in noise detection to reduce computation on absence of noise.
+     * 
+     * Configures how difficult is to considering a frame as noise (the required noise lever).
+     * 
+     * Unless specified the noise detection is disabled.
+     */
+    public final void setNoiseMode(NoiseDetectionMode value) {
+        int a0 = value.getValue();
+        do_setNoiseMode(mNativeObj, a0);
+
+        JNIReachabilityFence.reachabilityFence1(value);
+    }
+    private static native void do_setNoiseMode(long self, int value);
     /**
      * Seconds to disable the vad detector after voice is detected.
      * 
