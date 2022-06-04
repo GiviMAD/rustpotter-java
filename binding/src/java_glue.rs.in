@@ -60,9 +60,6 @@ impl RustpotterJavaBuilder {
     pub fn setSingleThread(&mut self, value: bool) {
         self.builder.set_single_thread(value);
     }
-    pub fn setNoiseDelay(&mut self, value: u16) {
-        self.builder.set_noise_delay(value);
-    }
     pub fn setNoiseSensitivity(&mut self, value: f32) {
         self.builder.set_noise_sensitivity(value);
     }
@@ -271,12 +268,6 @@ foreign_class!(class RustpotterJavaBuilder {
     ///
     /// Only applies when more than a wakeword is loaded.
     fn RustpotterJavaBuilder::setSingleThread(&mut self, value: bool);
-    /// Seconds to disable the noise detection after voice is detected.
-    ///
-    /// Defaults to 3.
-    ///
-    /// Only applies if noise mode is set, if 0 noise detection is not disabled after a detection.
-    fn RustpotterJavaBuilder::setNoiseDelay(&mut self, value: u16);
     /// Noise/silence ratio in the last second to consider voice detected.
     ///
     /// Defaults to 0.5.

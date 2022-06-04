@@ -348,9 +348,9 @@ dependencies = [
 
 [[package]]
 name = "rustpotter"
-version = "0.11.0"
+version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "06f4f7143d57b51f41b1f17e1fc1f13f5c282c59c46fa3a1d4bee964efec4748"
+checksum = "5ed9410ec874658f6aa53d4648c7f3d503a882291d57d3499760b723d9562c45"
 dependencies = [
  "hound",
  "once_cell",
@@ -364,7 +364,7 @@ dependencies = [
 
 [[package]]
 name = "rustpotter-java"
-version = "0.11.0"
+version = "0.12.1"
 dependencies = [
  "bindgen",
  "flapigen",

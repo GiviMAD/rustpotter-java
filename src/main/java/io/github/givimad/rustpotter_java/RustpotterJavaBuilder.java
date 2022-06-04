@@ -117,17 +117,6 @@ public final class RustpotterJavaBuilder {
     }
     private static native void do_setSingleThread(long self, boolean value);
     /**
-     * Seconds to disable the noise detection after voice is detected.
-     * 
-     * Defaults to 3.
-     * 
-     * Only applies if noise mode is set, if 0 noise detection is not disabled after a detection.
-     */
-    public final void setNoiseDelay(int value) {
-        do_setNoiseDelay(mNativeObj, value);
-    }
-    private static native void do_setNoiseDelay(long self, int value);
-    /**
      * Noise/silence ratio in the last second to consider voice detected.
      * 
      * Defaults to 0.5.
