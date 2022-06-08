@@ -6,7 +6,7 @@
 
 ## Description
 
-Java wrapper for [Rustpotter](https://github.com/GiviMAD/rustpotter) (a free and open source wake word spotter forged in rust).
+Java wrapper for [Rustpotter](https://github.com/GiviMAD/rustpotter) (an open source wake word spotter forged in rust).
 
 ## Installation
 

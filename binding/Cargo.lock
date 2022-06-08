@@ -177,6 +177,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "68354c5c6bd36d73ff3feceb05efa59b6acb7626617f4962be322a825e61f79a"
 
 [[package]]
+name = "nnnoiseless"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "99c041f552e9876564df5f9396ed2756b0bd84862e14899dba9854cdec749ff3"
+dependencies = [
+ "once_cell",
+ "rustfft",
+]
+
+[[package]]
 name = "nom"
 version = "7.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -348,14 +358,13 @@ dependencies = [
 
 [[package]]
 name = "rustpotter"
-version = "0.12.1"
+version = "0.14.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5ed9410ec874658f6aa53d4648c7f3d503a882291d57d3499760b723d9562c45"
+checksum = "c005672ce971cb10ac91abab62db4bde27154cc6b7ed2de93cab472fc7f7b364"
 dependencies = [
  "hound",
- "once_cell",
+ "nnnoiseless",
  "rubato",
- "rustfft",
  "savefile",
  "savefile-derive",
  "simple-matrix",
@@ -364,7 +373,7 @@ dependencies = [
 
 [[package]]
 name = "rustpotter-java"
-version = "0.12.1"
+version = "0.14.4"
 dependencies = [
  "bindgen",
  "flapigen",

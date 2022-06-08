@@ -6,12 +6,12 @@
 
   <groupId>io.github.givimad</groupId>
   <artifactId>rustpotter-java</artifactId>
-  <version>0.12.1</version>
+  <version>0.14.4</version>
 
   <name>rustpotter-java</name>
   <url>https://github.com/GiviMAD/rustpotter-java</url>
   <description>
-    Java binding for Rustpotter, a free and open source wake word spotter forged in rust.
+    Java binding for Rustpotter, an open source wake word spotter forged in rust.
   </description>
 
   <licenses>
