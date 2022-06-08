@@ -74,6 +74,18 @@ public final class RustpotterJavaBuilder {
     }
     private static native void do_setChannels(long self, int value);
     /**
+     * Configures expected endianness used by the 'processBuffer' method.
+     * 
+     * Defaults to little-endian
+     */
+    public final void setEndianness(Endianness value) {
+        int a0 = value.getValue();
+        do_setEndianness(mNativeObj, a0);
+
+        JNIReachabilityFence.reachabilityFence1(value);
+    }
+    private static native void do_setEndianness(long self, int value);
+    /**
      * Configures the band-size for the comparator used to match the samples.
      * 
      * Defaults to 6

@@ -2,7 +2,7 @@
 use crate::jni_c_header::*;
 use rustpotter::{
     DetectedWakeword, NoiseDetectionMode, SampleFormat, VadMode, WakewordDetector,
-    WakewordDetectorBuilder,
+    WakewordDetectorBuilder, Endianness,
 };
 pub struct RustpotterDetection {
     name: String,
@@ -47,6 +47,9 @@ impl RustpotterJavaBuilder {
     }
     pub fn setChannels(&mut self, value: u16) {
         self.builder.set_channels(value);
+    }
+    pub fn setEndianness(&mut self, value: Endianness) {
+        self.builder.set_endianness(value);
     }
     pub fn setComparatorBandSize(&mut self, value: usize) {
         self.builder.set_comparator_band_size(value);
@@ -179,6 +182,7 @@ foreign_typemap!(
     ($p:f_type) <= "jbyteArray";
 );
 foreign_enum!(
+    /// Allowed vad modes
     enum VadMode {
         QUALITY = VadMode::Quality,
         LOW_BITRATE = VadMode::LowBitrate,
@@ -187,6 +191,15 @@ foreign_enum!(
     }
 );
 foreign_enum!(
+    /// Supported endianness modes
+    enum Endianness {
+        LITTLE = Endianness::Little,
+        EASY = Endianness::Big,
+        NATIVE = Endianness::Native,
+    }
+);
+foreign_enum!(
+    /// Dificulty for considering a frame as noise
     enum NoiseDetectionMode {
         EASYEST = NoiseDetectionMode::Easiest,
         EASY = NoiseDetectionMode::Easy,
@@ -196,6 +209,7 @@ foreign_enum!(
     }
 );
 foreign_enum!(
+    /// Allowed wav sample formats
     enum SampleFormat {
         INT = SampleFormat::Int,
         FLOAT = SampleFormat::Float,
@@ -245,6 +259,10 @@ foreign_class!(class RustpotterJavaBuilder {
     ///
     /// Defaults to 1
     fn RustpotterJavaBuilder::setChannels(&mut self, value: u16);
+    /// Configures expected endianness used by the 'processBuffer' method.
+    ///
+    /// Defaults to little-endian
+    fn RustpotterJavaBuilder::setEndianness(&mut self, value: Endianness);
     /// Configures the band-size for the comparator used to match the samples.
     ///
     /// Defaults to 6
