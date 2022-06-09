@@ -194,7 +194,7 @@ foreign_enum!(
     /// Supported endianness modes
     enum Endianness {
         LITTLE = Endianness::Little,
-        EASY = Endianness::Big,
+        BIG = Endianness::Big,
         NATIVE = Endianness::Native,
     }
 );

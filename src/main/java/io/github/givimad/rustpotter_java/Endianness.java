@@ -6,7 +6,7 @@ package io.github.givimad.rustpotter_java;
  */
 public enum Endianness {
     LITTLE(0),
-    EASY(1),
+    BIG(1),
     NATIVE(2);
 
     private final int value;
@@ -17,7 +17,7 @@ public enum Endianness {
     /*package*/ static Endianness fromInt(int x) {
         switch (x) {
             case 0: return LITTLE;
-            case 1: return EASY;
+            case 1: return BIG;
             case 2: return NATIVE;
             default: throw new Error("Invalid value for enum Endianness: " + x);
         }
