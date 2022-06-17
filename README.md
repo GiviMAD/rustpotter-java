@@ -13,9 +13,10 @@ Java wrapper for [Rustpotter](https://github.com/GiviMAD/rustpotter) (an open so
 This package is available on the [Maven Central Repository](https://search.maven.org/artifact/io.github.givimad/rustpotter-java).
 
 The distributed package support the following platforms:
-    * debian (arm, arm64, x86_64)
-    * macOS (arm64, x86_64)
-    * windows (x86_64)
+
+* debian (arm, arm64, x86_64)
+* macOS (arm64, x86_64)
+* windows (x86_64)
 
 ## Examples
 
