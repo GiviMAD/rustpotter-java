@@ -2,14 +2,14 @@
 package io.github.givimad.rustpotter_java;
 
 /**
- * Dificulty for considering a frame as noise
+ * Dificulty for considering a frame as noise.
  */
 public enum NoiseDetectionMode {
-    EASYEST(0),
+    EASIEST(0),
     EASY(1),
     NORMAL(2),
-    HIGH(3),
-    HIGHEST(4);
+    HARD(3),
+    HARDEST(4);
 
     private final int value;
     NoiseDetectionMode(int value) {
@@ -18,11 +18,11 @@ public enum NoiseDetectionMode {
     public final int getValue() { return value; }
     /*package*/ static NoiseDetectionMode fromInt(int x) {
         switch (x) {
-            case 0: return EASYEST;
+            case 0: return EASIEST;
             case 1: return EASY;
             case 2: return NORMAL;
-            case 3: return HIGH;
-            case 4: return HIGHEST;
+            case 3: return HARD;
+            case 4: return HARDEST;
             default: throw new Error("Invalid value for enum NoiseDetectionMode: " + x);
         }
     }

@@ -2,7 +2,7 @@
 package io.github.givimad.rustpotter_java;
 
 /**
- * Allowed wav sample formats
+ * Allowed wav sample formats.
  */
 public enum SampleFormat {
     INT(0),

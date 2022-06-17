@@ -136,6 +136,8 @@ public final class RustpotterJava {
      * of the getBytesPerFrame method.
      * 
      * Assumes sample rate match the configured for the detector.
+     * 
+     * Assumes buffer endianness matches the configured for the detector.
      */
     public final java.util.Optional<RustpotterDetection> processBuffer(byte [] buffer) {
         long ret = do_processBuffer(mNativeObj, buffer);

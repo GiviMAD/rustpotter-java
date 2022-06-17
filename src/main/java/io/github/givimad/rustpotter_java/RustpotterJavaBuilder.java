@@ -38,6 +38,8 @@ public final class RustpotterJavaBuilder {
     /**
      * Configures the detector expected bit per sample for the audio chunks to process.
      * 
+     * When sample format is set to 'float' this is ignored as only 32 is supported.
+     * 
      * Defaults to 16; Allowed values: 8, 16, 24, 32
      */
     public final void setBitsPerSample(int value) {
@@ -47,7 +49,7 @@ public final class RustpotterJavaBuilder {
     /**
      * Configures the detector expected sample rate for the audio chunks to process.
      * 
-     * Defaults to 16000
+     * Defaults to 48000
      */
     public final void setSampleRate(long value) {
         do_setSampleRate(mNativeObj, value);
@@ -107,8 +109,8 @@ public final class RustpotterJavaBuilder {
     private static native void do_setComparatorRef(long self, float value);
     /**
      * Enables eager mode.
-     * Terminate the detection as son as one result is above the score,
-     * instead of wait to see if the next frame has a higher score.
+     * End detection as soon as a result is over the score, instead of
+     * waiting to see if the next frame has a higher score.
      * 
      * Recommended for real usage.
      * 
@@ -131,7 +133,7 @@ public final class RustpotterJavaBuilder {
     }
     private static native void do_setSingleThread(long self, boolean value);
     /**
-     * Noise/silence ratio in the last second to consider voice detected.
+     * Noise/silence ratio in the last second to consider voice is detected.
      * 
      * Defaults to 0.5.
      * 
@@ -144,7 +146,7 @@ public final class RustpotterJavaBuilder {
     /**
      * Use build-in noise detection to reduce computation on absence of noise.
      * 
-     * Configures how difficult is to considering a frame as noise (the required noise lever).
+     * Configures how difficult is to considering a frame as noise (the required noise level).
      * 
      * Unless specified the noise detection is disabled.
      */
@@ -167,7 +169,7 @@ public final class RustpotterJavaBuilder {
     }
     private static native void do_setVADDelay(long self, int value);
     /**
-     * Voice/silence ratio in the last second to consider voice detected.
+     * Voice/silence ratio in the last second to consider voice is detected.
      * 
      * Defaults to 0.5.
      * 

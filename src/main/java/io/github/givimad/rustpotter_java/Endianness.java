@@ -2,7 +2,7 @@
 package io.github.givimad.rustpotter_java;
 
 /**
- * Supported endianness modes
+ * Supported endianness modes.
  */
 public enum Endianness {
     LITTLE(0),

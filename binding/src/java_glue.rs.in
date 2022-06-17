@@ -175,7 +175,7 @@ foreign_typemap!(
     ($p:f_type) <= "jbyteArray";
 );
 foreign_enum!(
-    /// Allowed vad modes
+    /// Allowed vad modes.
     enum VadMode {
         QUALITY = VadMode::Quality,
         LOW_BITRATE = VadMode::LowBitrate,
@@ -184,7 +184,7 @@ foreign_enum!(
     }
 );
 foreign_enum!(
-    /// Supported endianness modes
+    /// Supported endianness modes.
     enum Endianness {
         LITTLE = Endianness::Little,
         BIG = Endianness::Big,
@@ -192,17 +192,17 @@ foreign_enum!(
     }
 );
 foreign_enum!(
-    /// Dificulty for considering a frame as noise
+    /// Dificulty for considering a frame as noise.
     enum NoiseDetectionMode {
-        EASYEST = NoiseDetectionMode::Easiest,
+        EASIEST = NoiseDetectionMode::Easiest,
         EASY = NoiseDetectionMode::Easy,
         NORMAL = NoiseDetectionMode::Normal,
-        HIGH = NoiseDetectionMode::Hard,
-        HIGHEST = NoiseDetectionMode::Hardest,
+        HARD = NoiseDetectionMode::Hard,
+        HARDEST = NoiseDetectionMode::Hardest,
     }
 );
 foreign_enum!(
-    /// Allowed wav sample formats
+    /// Allowed wav sample formats.
     enum SampleFormat {
         INT = SampleFormat::Int,
         FLOAT = SampleFormat::Float,
@@ -242,11 +242,13 @@ foreign_class!(
         fn RustpotterJavaBuilder::setAveragedThreshold(&mut self, value: f32);
         /// Configures the detector expected bit per sample for the audio chunks to process.
         ///
+        /// When sample format is set to 'float' this is ignored as only 32 is supported.
+        /// 
         /// Defaults to 16; Allowed values: 8, 16, 24, 32
         fn RustpotterJavaBuilder::setBitsPerSample(&mut self, value: u16);
         /// Configures the detector expected sample rate for the audio chunks to process.
         ///
-        /// Defaults to 16000
+        /// Defaults to 48000
         fn RustpotterJavaBuilder::setSampleRate(&mut self, value: usize);
         /// Configures the detector expected sample format for the audio chunks to process.
         ///
@@ -270,8 +272,8 @@ foreign_class!(
         /// Defaults to 0.22
         fn RustpotterJavaBuilder::setComparatorRef(&mut self, value: f32);
         /// Enables eager mode.
-        /// Terminate the detection as son as one result is above the score,
-        /// instead of wait to see if the next frame has a higher score.
+        /// End detection as soon as a result is over the score, instead of
+        /// waiting to see if the next frame has a higher score.
         ///
         /// Recommended for real usage.
         ///
@@ -284,7 +286,7 @@ foreign_class!(
         ///
         /// Only applies when more than a wakeword is loaded.
         fn RustpotterJavaBuilder::setSingleThread(&mut self, value: bool);
-        /// Noise/silence ratio in the last second to consider voice detected.
+        /// Noise/silence ratio in the last second to consider voice is detected.
         ///
         /// Defaults to 0.5.
         ///
@@ -292,7 +294,7 @@ foreign_class!(
         fn RustpotterJavaBuilder::setNoiseSensitivity(&mut self, value: f32);
         /// Use build-in noise detection to reduce computation on absence of noise.
         ///
-        /// Configures how difficult is to considering a frame as noise (the required noise lever).
+        /// Configures how difficult is to considering a frame as noise (the required noise level).
         ///
         /// Unless specified the noise detection is disabled.
         fn RustpotterJavaBuilder::setNoiseMode(&mut self, value: NoiseDetectionMode);
@@ -302,7 +304,7 @@ foreign_class!(
         ///
         /// Only applies if vad is enabled.
         fn RustpotterJavaBuilder::setVADDelay(&mut self, value: u16);
-        /// Voice/silence ratio in the last second to consider voice detected.
+        /// Voice/silence ratio in the last second to consider voice is detected.
         ///
         /// Defaults to 0.5.
         ///
@@ -385,6 +387,8 @@ foreign_class!(
         /// of the getBytesPerFrame method.
         ///
         /// Assumes sample rate match the configured for the detector.
+        ///
+        /// Assumes buffer endianness matches the configured for the detector.
         fn RustpotterJava::processBuffer(&mut self, buffer: &[u8]) -> Option<RustpotterDetection>;
         /// Loads a wakeword from its model path.
         fn RustpotterJava::addWakewordModelFile(&mut self, path: String) -> Result<String, String>;

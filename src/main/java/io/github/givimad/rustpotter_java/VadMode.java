@@ -2,7 +2,7 @@
 package io.github.givimad.rustpotter_java;
 
 /**
- * Allowed vad modes
+ * Allowed vad modes.
  */
 public enum VadMode {
     QUALITY(0),
